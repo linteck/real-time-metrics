@@ -3,9 +3,14 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	echo "github.com/labstack/echo/v4"
-	"golang.org/x/net/websocket"
 	"stream/models"
+
+	"context"
+	"log"
+	"time"
+
+	echo "github.com/labstack/echo/v4"
+	"nhooyr.io/websocket"
 )
 
 // Controller interface has two methods
@@ -27,11 +32,9 @@ func NewController() Controller {
 var model models.Model
 
 // Initializes the models
-func Init(){
+func Init() {
 	model = models.NewModel()
 }
-
-
 
 func (c *controller) HomeController(e echo.Context) error {
 	return e.File("views/index.html")
@@ -39,22 +42,34 @@ func (c *controller) HomeController(e echo.Context) error {
 
 func (c *controller) StreamController(e echo.Context) error {
 
-	websocket.Handler(func(ws *websocket.Conn) {
-		defer ws.Close()
-		status, err := model.GetLiveCpuUsage()
+	opts := &websocket.AcceptOptions{
+		OriginPatterns: []string{"*"},
+	}
+
+	conn, err := websocket.Accept(e.Response().Writer, e.Request(), opts)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	defer conn.CloseNow()
+	ctx, cancel := context.WithTimeout(e.Request().Context(), time.Second*100)
+	defer cancel()
+
+	status, err := model.GetLiveCpuUsage()
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	for {
+		// Write
+		newVal := <-status
+
+		jsonResponse, _ := json.Marshal(newVal)
+		err := conn.Write(ctx, websocket.MessageText, jsonResponse)
 		if err != nil {
 			fmt.Println(err)
-			return
 		}
-		for {
-			// Write
-			newVal := <- status
-			jsonResponse, _ := json.Marshal(newVal)
-			err := websocket.Message.Send(ws, fmt.Sprintln(string(jsonResponse)))
-			if err != nil {
-				fmt.Println(err)
-			}
-		}
-	}).ServeHTTP(e.Response(), e.Request())
+	}
 	return nil
 }

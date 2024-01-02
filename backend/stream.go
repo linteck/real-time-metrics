@@ -1,11 +1,12 @@
 package stream
 
 import (
-	"github.com/labstack/echo/v4"
 	"stream/routes"
+
+	echo "github.com/labstack/echo/v4"
 )
 
-func Init(){
+func Init() {
 	e := echo.New()
 
 	// registers all the available routes
