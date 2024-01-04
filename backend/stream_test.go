@@ -118,16 +118,16 @@ func StepGetCpuReader(t *testing.T, s *httptest.Server) {
 	}
 	defer c.CloseNow()
 
-	mt, r, err := c.Reader(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Logf("Message type is %v", mt)
-
 	for {
+		mt, r, err := c.Reader(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Logf("Message type is %v", mt)
+
 		var reply models.Cpu
 		dec := json.NewDecoder(r)
-		err := dec.Decode(&reply)
+		err = dec.Decode(&reply)
 		if err == nil {
 			if err != nil {
 				t.Logf("Unmarshal error: %v", err)
