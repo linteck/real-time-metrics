@@ -55,16 +55,24 @@ func (c *controller) StreamController(e echo.Context) error {
 	ctx, cancel := context.WithTimeout(e.Request().Context(), time.Second*100)
 	defer cancel()
 
+	conn.CloseRead(ctx)
 	status, err := model.GetLiveCpuUsage()
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
 
+	id := 0
 	for {
 		// Write
 		newVal := <-status
+		id++
+		fmt.Println(id)
+		if id > 10 {
+			break
+		}
 
+		fmt.Println(newVal)
 		jsonResponse, _ := json.Marshal(newVal)
 		err := conn.Write(ctx, websocket.MessageText, jsonResponse)
 		if err != nil {
