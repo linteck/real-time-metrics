@@ -3,12 +3,16 @@
 package gojsdomframe
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"syscall/js"
 	"time"
 
 	dom "honnef.co/go/js/dom/v2"
+	"nhooyr.io/websocket"
 )
 
 const serverURL = "http://127.0.0.1:8080"
@@ -157,52 +161,101 @@ func newChart() dom.Element {
 	div.AppendChild(el)
 
 	cb := func(ev dom.Event) {
-
-		display := js.Global().Get("document").Call("getElementById", "display")
-		if display.IsUndefined() || display.IsNull() {
-			log.Fatalf("Invalide display obj: %v", display)
-		}
-		log.Printf("Show display obj: %v\n", display.Get("id"))
-		// var chart = new google.visualization.LineChart(document.getElementById('display'));
-		chart := google.Get("visualization").Get("LineChart").New(display)
-
-		options := map[string]interface{}{
-			"hAxis": map[string]interface{}{
-				"title":  "Time",
-				"format": "HH:mm:ss",
-			},
-			"vAxis": map[string]interface{}{
-				"title":    "% CPU Usage",
-				"minValue": 0,
-			},
-			"colors": []interface{}{"#a52714"},
-			"crosshair": map[string]interface{}{
-				"color":   "#000",
-				"trigger": "selection",
-			},
-			"dateFormat": "HH:mm:ss",
-		}
-		// chart.draw(data, options);
-		data := js.Global().Get("data")
-		now := time.Now().Unix()
-		// Get the Date object constructor from JavaScript
-		dateConstructor := js.Global().Get("Date")
-		// Return a new JS "Date" object with the time from the Go "now" variable
-		// We're passing the UNIX timestamp to the "Date" constructor
-		// Because JS uses milliseconds for UNIX timestamp, we need to multiply the timestamp by 1000
-		rows := []interface{}{}
-		var i int64
-		for i = 0; i < 10; i++ {
-			dt := dateConstructor.New((now + i*1000) * 1000)
-			row := []interface{}{dt, 10 + i*10}
-			rows = append(rows, row)
-		}
-		data.Call("addRows", rows)
-		chart.Call("draw", data, options)
+		go GetCpu()
 	}
 	el.AddEventListener("click", false, cb)
 
 	return div
+}
+
+type Cpu struct {
+	PercentageUsage int `json:"cpuPercentageUsage"`
+}
+
+func drawCpt(num int) {
+	google := js.Global().Get("google")
+	display := js.Global().Get("document").Call("getElementById", "display")
+	if display.IsUndefined() || display.IsNull() {
+		log.Fatalf("Invalide display obj: %v", display)
+	}
+	log.Printf("Show display obj: %v\n", display.Get("id"))
+	// var chart = new google.visualization.LineChart(document.getElementById('display'));
+	chart := google.Get("visualization").Get("LineChart").New(display)
+
+	options := map[string]interface{}{
+		"hAxis": map[string]interface{}{
+			"title":  "Time",
+			"format": "HH:mm:ss",
+		},
+		"vAxis": map[string]interface{}{
+			"title":    "% CPU Usage",
+			"minValue": 0,
+		},
+		"colors": []interface{}{"#a52714"},
+		"crosshair": map[string]interface{}{
+			"color":   "#000",
+			"trigger": "selection",
+		},
+		"dateFormat": "HH:mm:ss",
+	}
+	// chart.draw(data, options);
+	data := js.Global().Get("data")
+	now := time.Now().Unix()
+	// Get the Date object constructor from JavaScript
+	dateConstructor := js.Global().Get("Date")
+	// Return a new JS "Date" object with the time from the Go "now" variable
+	// We're passing the UNIX timestamp to the "Date" constructor
+	// Because JS uses milliseconds for UNIX timestamp, we need to multiply the timestamp by 1000
+	rows := []interface{}{}
+	// var i int64
+	// for i = 0; i < 10; i++ {
+	// 	dt := dateConstructor.New((now + i*1000) * 1000)
+	// 	row := []interface{}{dt, 10 + i*10}
+	// 	rows = append(rows, row)
+	// }
+	dt := dateConstructor.New(now * 1000)
+	row := []interface{}{dt, num}
+	rows = append(rows, row)
+	data.Call("addRows", rows)
+	chart.Call("draw", data, options)
+}
+
+func GetCpu() {
+	// Connect to the server
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	EAddr := "127.0.0.1:8082"
+	u := "ws://" + EAddr + "/stream"
+	log.Printf("websocket-URL:%v", u)
+
+	opt := &websocket.DialOptions{}
+	c, _, err := websocket.Dial(ctx, u, opt)
+	if err != nil {
+		log.Fatalf("Dial error :%v", err)
+	}
+	defer c.CloseNow()
+
+	for {
+		_, buf, err := c.Read(context.Background())
+		if err == nil {
+			var reply Cpu
+			err := json.Unmarshal(buf, &reply)
+			if err != nil {
+				log.Printf("Unmarshal error: %v", err)
+			} else {
+				log.Printf("Get Reply: %v", reply)
+				drawCpt(reply.PercentageUsage)
+			}
+		}
+		//<-time.After(time.Second)
+		if err == io.EOF {
+			log.Printf("Received EOF: %v", err)
+			return
+		} else if err != nil {
+			log.Fatalf("FAIL: Invalid Response: %v", err)
+		}
+	}
+
 }
 
 type TaskID string
