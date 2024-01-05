@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"syscall/js"
+	"time"
 
 	dom "honnef.co/go/js/dom/v2"
 )
@@ -183,6 +184,20 @@ func newChart() dom.Element {
 		}
 		// chart.draw(data, options);
 		data := js.Global().Get("data")
+		now := time.Now().Unix()
+		// Get the Date object constructor from JavaScript
+		dateConstructor := js.Global().Get("Date")
+		// Return a new JS "Date" object with the time from the Go "now" variable
+		// We're passing the UNIX timestamp to the "Date" constructor
+		// Because JS uses milliseconds for UNIX timestamp, we need to multiply the timestamp by 1000
+		rows := []interface{}{}
+		var i int64
+		for i = 0; i < 10; i++ {
+			dt := dateConstructor.New((now + i*1000) * 1000)
+			row := []interface{}{dt, 10 + i*10}
+			rows = append(rows, row)
+		}
+		data.Call("addRows", rows)
 		chart.Call("draw", data, options)
 	}
 	el.AddEventListener("click", false, cb)

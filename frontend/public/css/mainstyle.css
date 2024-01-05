@@ -68,6 +68,15 @@ body {
   text-align: center;
 }
 
+.display {
+  flex-shrink: 0;
+  background-color: darkblue;
+  color: white;
+  text-align: center;
+  min-height: 45vh;
+  min-width: 85vw;
+}
+
 .all-table li {
     border-radius: 3px;
     display: flex;
