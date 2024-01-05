@@ -6,7 +6,8 @@ import (
 )
 
 func main() {
-	fs := http.FileServer(http.Dir("views"))
+	//fs := http.FileServer(http.Dir("views"))
+	fs := http.FileServer(http.Dir("public"))
 	http.Handle("/", fs)
 
 	log.Println("Listening...")

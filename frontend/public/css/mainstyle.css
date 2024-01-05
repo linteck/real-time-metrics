@@ -1,0 +1,181 @@
+
+html {
+	overflow-y:scroll;
+	overflow-x:hidden;
+	-webkit-tap-highlight-color:rgba(0, 0, 0, 0);
+	-webkit-text-size-adjust:100%;
+	-ms-text-size-adjust:100%;
+}
+
+body {
+	margin:0;
+}
+
+.wrapper {
+  display: flex;
+  flex-flow: row wrap;
+}
+
+/* We tell all items to be 100% width, via flex-basis */
+.wrapper > * {
+  flex: 1 100%;
+  border:1px solid black;
+}
+
+/* Medium screens */
+@media all and (min-width: 600px) {
+  /* We tell both sidebars to share a row */
+  .aside {
+    flex: 1 auto;
+  }
+  .aside-1 {
+    background-color: rgb(242, 242, 179);
+  }
+}
+
+/* Large screens */
+@media all and (min-width: 800px) {
+  /* We invert order of first sidebar and main
+   * And tell the main element to take twice as much width as the other two sidebars
+   */
+  .header {
+    background-color: skyblue;
+  }
+  .main {
+    flex: 4 0px;
+    flex-grow: 6;
+    width: 100px;  /* Or whatever */
+    height: 100px; /* Or whatever */
+    margin: auto;  /* Magic! */
+    min-height: 95vh;
+    min-width: 85vw;
+    overflow: auto;
+    background-color: rgb(242, 242, 179);
+  }
+  .aside-1 {
+    background-color: rgb(242, 242, 179);
+  }
+  .aside-1 { order: 1; }
+  .main    { order: 2; }
+  .aside-2 { order: 3; }
+  .footer  { order: 4; }
+}
+
+.footer {
+  flex-shrink: 0;
+  background-color: darkblue;
+  color: white;
+  text-align: center;
+}
+
+.all-table li {
+    border-radius: 3px;
+    display: flex;
+    justify-content: space-between;
+    /* margin-bottom: 25px; */
+    /* empty-cells: show; */
+}
+
+.login-table li {
+    flex-direction: row;
+    justify-content: flex-start
+}
+
+.all-table .table-header {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    width: 90%;
+}
+.testbeds-table .table-header {
+    background-color: #95A5A6;
+}
+.results-table .table-header {
+    background-color: #9bedbd;
+}
+.all-table .table-row {
+    background-color: #ffffff;
+    box-shadow: 0px 0px 9px 0px rgba(0,0,0,0.1);
+    width: 90%;
+}
+
+li:empty:after {
+  content: " ";
+}
+
+li.fail-fail {
+    color: orange;
+}
+li.fail-pass {
+    color: green;
+}
+li.pass-fail {
+    color: brown;
+}
+li.pass-pass {
+    color: black;
+}
+li.error-pass{
+    color: green;
+}
+li.pass-error {
+    color: brown;
+}
+li.not-paired {
+    color: black;
+}
+
+
+.all-table .table-col {
+    border: solid 1px black;
+    padding: 15px 10px;
+}
+.all-table .testbeds-col-ckb {
+    flex-basis: 10%;
+}
+.all-table .testbeds-col-id {
+    flex-basis: 20%;
+    text-decoration: underline;
+}
+.all-table .testbeds-col-action {
+    flex-basis: 20%;
+    text-decoration: underline;
+}
+.all-table .testbeds-col {
+    flex-basis: 20%;
+}
+
+.all-table .cmp-results-col-0 {
+    flex-basis: 5%;
+}
+.all-table .cmp-results-col-1 {
+    flex-basis: 5%;
+}
+.all-table .cmp-results-col-2 {
+    flex-basis: 10%;
+}
+.all-table .cmp-results-col-3 {
+    flex-basis: 30%;
+}
+
+.all-table .results-col-0 {
+    flex-basis: 5%;
+}
+.all-table .results-col-1 {
+    flex-basis: 5%;
+}
+.all-table .results-col-2 {
+    flex-basis: 10%;
+}
+.all-table .results-col-3 {
+    flex-basis: 10%;
+}
+.all-table .results-col-4 {
+    flex-basis: 10%;
+}
+.all-table .results-col-5 {
+    flex-basis: 10%;
+}
+.all-table .results-col-6 {
+    flex-basis: 50%;
+}

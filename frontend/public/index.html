@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="./css/mainstyle.css">
+    <title>Tango Test System</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="wasm_exec.js"></script>
+    <script>
+        async function runWasm() {
+            const go = new Go();
+            const result = await WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject);
+            go.run(result.instance);
+        }
+
+        runWasm();
+    </script>
+</head>
+<body>
+</body>
+</html>
+
